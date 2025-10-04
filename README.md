@@ -1,1 +1,2 @@
 # Pro-Finance-Tracker
+The Pro Finance Tracker is a comprehensive, single-page web application designed for personal finance management, perfect for students learning to manage their money. It provides a secure, user-specific login experience, leading to a dynamic dashboard that visualizes income, expenses, and overall account balance. Key features include monthly budgeting, category-based spending analysis via charts, and transaction searching to give users a clear and powerful tool for financial oversight
