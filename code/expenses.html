@@ -35,12 +35,70 @@
             background-color: #4338ca; /* indigo-700 */
             color: white;
         }
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .login-form {
+            width: 100%;
+            max-width: 400px;
+        }
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 antialiased transition-colors duration-300">
 
-    <!-- Main Application Container -->
-    <div class="container mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+    <!-- Login Page -->
+    <div id="login-page" class="login-container">
+        <div class="login-form bg-slate-50 dark:bg-slate-800 p-8 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-slate-700 to-indigo-700 dark:from-slate-300 dark:to-indigo-400">Finance Tracker</h1>
+                <p class="text-slate-500 dark:text-slate-400 mt-2">Sign in to your account</p>
+            </div>
+            
+            <form id="login-form" class="space-y-6">
+                <div>
+                    <label for="username" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Username</label>
+                    <input type="text" id="username" required class="w-full px-4 py-3 border bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                </div>
+                
+                <div>
+                    <label for="password" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Password</label>
+                    <input type="password" id="password" required class="w-full px-4 py-3 border bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-slate-300 rounded">
+                        <label for="remember-me" class="ml-2 block text-sm text-slate-700 dark:text-slate-300">Remember me</label>
+                    </div>
+                    <div class="text-sm">
+                        <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500">Forgot password?</a>
+                    </div>
+                </div>
+                
+                <div>
+                    <button type="submit" class="w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-indigo-700 transition-all duration-300">
+                        Sign in
+                    </button>
+                </div>
+            </form>
+            
+            <div class="mt-6 text-center">
+                <p class="text-sm text-slate-600 dark:text-slate-400">
+                    Don't have an account?
+                    <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500">Sign up</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application Container (Hidden by default) -->
+    <div id="app-container" class="hidden container mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
 
         <!-- Header -->
         <header class="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center">
@@ -49,11 +107,7 @@
                 <p class="text-slate-500 dark:text-slate-400 mt-1">A smarter way to manage your money.</p>
             </div>
             <div class="flex items-center gap-2 mt-4 sm:mt-0">
-                <button id="theme-toggle-btn" title="Toggle Theme" class="text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800">
-                    <svg id="theme-icon-light" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                    <svg id="theme-icon-dark" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-                </button>
-                 <button id="reset-data-btn" title="Reset All Data" class="text-slate-500 dark:text-slate-400 hover:text-red-600 transition-colors p-2 rounded-lg hover:bg-red-100 dark:hover:bg-slate-800">
+                <button id="reset-data-btn" title="Reset All Data" class="text-slate-500 dark:text-slate-400 hover:text-red-600 transition-colors p-2 rounded-lg hover:bg-red-100 dark:hover:bg-slate-800">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L20.5 10"></path><path d="M20.49 15a9 9 0 0 1-14.85 3.36L3.5 14"></path></svg>
                 </button>
                 <button id="add-transaction-btn" class="w-full sm:w-auto flex items-center justify-center gap-2 bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-indigo-700 transition-all duration-300">
@@ -106,7 +160,7 @@
                  <div class="flex justify-between items-center mb-4">
                      <h2 class="text-xl font-semibold">Transaction History</h2>
                      <button id="export-csv-btn" title="Export to CSV" class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 font-medium py-1.5 px-3 rounded-lg border-2 border-slate-200 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15\" x2=\"12\" y2=\"3\"/></svg>
                         Export
                     </button>
                 </div>
@@ -158,9 +212,11 @@
         document.addEventListener("DOMContentLoaded", () => {
             // DOM Elements
             const htmlEl = document.documentElement;
-            const themeToggleBtn = document.getElementById("theme-toggle-btn");
-            const lightIcon = document.getElementById("theme-icon-light");
-            const darkIcon = document.getElementById("theme-icon-dark");
+            const loginPage = document.getElementById("login-page");
+            const appContainer = document.getElementById("app-container");
+            const loginForm = document.getElementById("login-form");
+            const usernameInput = document.getElementById("username");
+            const passwordInput = document.getElementById("password");
             const exportCsvBtn = document.getElementById("export-csv-btn");
             const transactionTableBody = document.querySelector("#transaction-table tbody");
             const totalIncomeEl = document.getElementById("total-income");
@@ -207,31 +263,42 @@
             const expenseCategories = ['Food', 'Groceries', 'Transport', 'Rent', 'Utilities', 'Entertainment', 'Shopping', 'Health', 'Education', 'Travel', 'Other'];
             const incomeCategories = ['Salary', 'Bonus', 'Gift', 'Investment', 'Other'];
             
-            // --- NEW: Theme Management ---
+            // --- Theme Management ---
             const checkTheme = () => {
                 const userTheme = localStorage.getItem("theme");
                 const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches;
                 if (userTheme === "dark" || (!userTheme && systemTheme)) {
                     htmlEl.classList.add("dark");
-                    lightIcon.classList.add("hidden");
-                    darkIcon.classList.remove("hidden");
                 } else {
                     htmlEl.classList.remove("dark");
-                    lightIcon.classList.remove("hidden");
-                    darkIcon.classList.add("hidden");
                 }
                 renderChart(); // Re-render chart for theme colors
             };
 
-            themeToggleBtn.addEventListener("click", () => {
-                if (htmlEl.classList.contains("dark")) {
-                    htmlEl.classList.remove("dark");
-                    localStorage.setItem("theme", "light");
+            // --- Login Functionality ---
+            const showLoginPage = () => {
+                loginPage.classList.remove("hidden");
+                appContainer.classList.add("hidden");
+            };
+
+            const showApp = () => {
+                loginPage.classList.add("hidden");
+                appContainer.classList.remove("hidden");
+            };
+
+            loginForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+                // Simple validation - in a real app, this would be server-side
+                const username = usernameInput.value.trim();
+                const password = passwordInput.value;
+                
+                if (username && password) {
+                    // In a real app, you would authenticate with a server
+                    // For this demo, we'll just accept any valid credentials
+                    showApp();
                 } else {
-                    htmlEl.classList.add("dark");
-                    localStorage.setItem("theme", "dark");
+                    alert("Please enter both username and password");
                 }
-                checkTheme();
             });
 
             // --- NEW: Export to CSV ---
@@ -346,7 +413,7 @@
                     const isExpense = tx.type === 'expense';
                     const row = document.createElement("tr");
                     row.className = "border-b border-slate-200/50 dark:border-slate-700/50 hover:bg-slate-200/40 dark:hover:bg-slate-700/40";
-                    row.innerHTML = `<td class="px-6 py-4">${new Date(tx.date).toLocaleDateString()}</td><td class="px-6 py-4 font-medium text-slate-900 dark:text-slate-100">${tx.category}</td><td class="px-6 py-4 font-semibold ${isExpense ? 'text-red-500' : 'text-green-600'}">${isExpense ? '−' : '+'}₹${parseFloat(tx.amount).toFixed(2)}</td><td class="px-6 py-4 hidden md:table-cell">${tx.note || ""}</td><td class="px-6 py-4 text-right"><button class="edit-btn font-medium text-indigo-600 hover:underline mr-3" data-id="${tx.id}">Edit</button><button class="delete-btn font-medium text-red-600 hover:underline" data-id="${tx.id}">Delete</button></td>`;
+                    row.innerHTML = `<td class=\"px-6 py-4\">${new Date(tx.date).toLocaleDateString()}</td><td class=\"px-6 py-4 font-medium text-slate-900 dark:text-slate-100\">${tx.category}</td><td class=\"px-6 py-4 font-semibold ${isExpense ? 'text-red-500' : 'text-green-600'}\">${isExpense ? '−' : '+'}₹${parseFloat(tx.amount).toFixed(2)}</td><td class=\"px-6 py-4 hidden md:table-cell\">${tx.note || ""}</td><td class=\"px-6 py-4 text-right\"><button class=\"edit-btn font-medium text-indigo-600 hover:underline mr-3\" data-id=\"${tx.id}\">Edit</button><button class=\"delete-btn font-medium text-red-600 hover:underline\" data-id=\"${tx.id}\">Delete</button></td>`;
                     transactionTableBody.appendChild(row);
                 });
             };
@@ -446,9 +513,8 @@
 
             // Initial render on page load
             checkTheme();
-            render();
+            showLoginPage(); // Show login page initially
         });
     </script>
 </body>
 </html>
-
