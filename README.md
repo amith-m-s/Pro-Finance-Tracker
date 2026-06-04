@@ -39,26 +39,23 @@ The data set is small (thousands of transactions, not millions). LocalStorage op
 
 ```
 Pro-Finance-Tracker/
-├── index.html           # Single-page app entry point
-├── style.css            # UI styles
-├── app.js               # Core application logic
-├── charts.js            # Chart.js initialization and update logic
-├── storage.js           # LocalStorage read/write layer
-└── categories.js        # Category definitions and budget thresholds
+├── expenses.html           # Single-page app entry point
+├── cstyle.css              # UI styles
+├── jsscript.js             # Java Script
 ```
 
 ---
 
 ## Running
 
-No build step. Open `index.html` in any browser.
+No build step. Open `expenses.html` in any browser.
 
 ```bash
 git clone https://github.com/amith-m-s/Pro-Finance-Tracker
 cd Pro-Finance-Tracker
-open index.html   # macOS
+open expenses.html   # macOS
 # or
-start index.html  # Windows
+start expenses.html  # Windows
 ```
 
 Or serve locally:
