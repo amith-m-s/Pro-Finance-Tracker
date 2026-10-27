@@ -501,6 +501,11 @@
                 }
             });
 
+            const escapeCsvCell = (value) => {
+                const text = String(value ?? "");
+                const safeText = /^[\u0000-\u0020]*[=+\-@]/.test(text) ? "'" + text : text;
+                return "\"" + safeText.replace(/"/g, "\"\"") + "\"";
+            };
             // --- NEW: Export to CSV ---
             exportCsvBtn.addEventListener("click", () => {
                 const transactions = appState.transactions;
@@ -510,18 +515,11 @@
                 }
 
                 const headers = ["ID", "Type", "Date", "Category", "Amount", "Note"];
-                const csvRows = [headers.join(",")];
+                const csvRows = [headers.map(escapeCsvCell).join(",")];
 
                 transactions.forEach(tx => {
-                    const row = [
-                        tx.id,
-                        tx.type,
-                        tx.date,
-                        tx.category,
-                        tx.amount,
-                        `"${tx.note ? tx.note.replace(/"/g, '""') : ""}"` // Handle notes with commas/quotes
-                    ];
-                    csvRows.push(row.join(","));
+                    const row = [tx.id, tx.type, tx.date, tx.category, tx.amount, tx.note];
+                    csvRows.push(row.map(escapeCsvCell).join(","));
                 });
 
                 const csvString = csvRows.join("\n");
@@ -566,7 +564,12 @@
                 currentTransactionType = type;
                 transactionTypeBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.type === type));
                 const categories = type === 'expense' ? expenseCategories : incomeCategories;
-                categoryInput.innerHTML = categories.map(c => `<option>${c}</option>`).join('');
+                categoryInput.replaceChildren(...categories.map(category => {
+                    const option = document.createElement("option");
+                    option.value = category;
+                    option.textContent = category;
+                    return option;
+                }));
             };
             
             transactionTypeBtns.forEach(btn => btn.addEventListener('click', () => setTransactionType(btn.dataset.type)));
@@ -668,22 +671,50 @@
                 errorMessageEl.classList.add("hidden");
                 
                 sortedTransactions.forEach((tx) => {
-                    const isExpense = tx.type === 'expense';
+                    const isExpense = tx.type === "expense";
                     const row = document.createElement("tr");
                     row.className = "border-b border-slate-200/50 dark:border-slate-700/50 hover:bg-slate-200/40 dark:hover:bg-slate-700/40 transaction-row";
-                    row.innerHTML = `<td class="px-6 py-4">${new Date(tx.date).toLocaleDateString()}</td>
-                        <td class="px-6 py-4 font-medium text-slate-900 dark:text-slate-100">
-                            <span class="category-color" style="background-color: ${getCategoryColor(tx.category)}"></span>
-                            ${tx.category}
-                        </td>
-                        <td class="px-6 py-4 font-semibold ${isExpense ? 'text-red-500' : 'text-green-600'}">
-                            ${isExpense ? '−' : '+'}₹${parseFloat(tx.amount).toFixed(2)}
-                        </td>
-                        <td class="px-6 py-4 hidden md:table-cell">${tx.note || ""}</td>
-                        <td class="px-6 py-4 text-right">
-                            <button class="edit-btn font-medium text-indigo-600 hover:underline mr-3" data-id="${tx.id}">Edit</button>
-                            <button class="delete-btn font-medium text-red-600 hover:underline" data-id="${tx.id}">Delete</button>
-                        </td>`;
+
+                    const dateCell = document.createElement("td");
+                    dateCell.className = "px-6 py-4";
+                    const transactionDate = new Date(tx.date);
+                    dateCell.textContent = Number.isNaN(transactionDate.getTime())
+                        ? "Invalid date"
+                        : transactionDate.toLocaleDateString();
+
+                    const categoryCell = document.createElement("td");
+                    categoryCell.className = "px-6 py-4 font-medium text-slate-900 dark:text-slate-100";
+                    const categorySwatch = document.createElement("span");
+                    categorySwatch.className = "category-color";
+                    categorySwatch.style.backgroundColor = getCategoryColor(String(tx.category ?? ""));
+                    categoryCell.appendChild(categorySwatch);
+                    categoryCell.appendChild(document.createTextNode(String(tx.category ?? "")));
+
+                    const amountCell = document.createElement("td");
+                    amountCell.className = "px-6 py-4 font-semibold " + (isExpense ? "text-red-500" : "text-green-600");
+                    const amount = Number.parseFloat(tx.amount);
+                    amountCell.textContent = (isExpense ? "−" : "+") + "₹" +
+                        (Number.isFinite(amount) ? amount.toFixed(2) : "0.00");
+
+                    const noteCell = document.createElement("td");
+                    noteCell.className = "px-6 py-4 hidden md:table-cell";
+                    noteCell.textContent = String(tx.note ?? "");
+
+                    const actionsCell = document.createElement("td");
+                    actionsCell.className = "px-6 py-4 text-right";
+                    const editButton = document.createElement("button");
+                    editButton.type = "button";
+                    editButton.className = "edit-btn font-medium text-indigo-600 hover:underline mr-3";
+                    editButton.dataset.id = String(tx.id ?? "");
+                    editButton.textContent = "Edit";
+                    const deleteButton = document.createElement("button");
+                    deleteButton.type = "button";
+                    deleteButton.className = "delete-btn font-medium text-red-600 hover:underline";
+                    deleteButton.dataset.id = String(tx.id ?? "");
+                    deleteButton.textContent = "Delete";
+                    actionsCell.append(editButton, deleteButton);
+
+                    row.append(dateCell, categoryCell, amountCell, noteCell, actionsCell);
                     transactionTableBody.appendChild(row);
                 });
             };
