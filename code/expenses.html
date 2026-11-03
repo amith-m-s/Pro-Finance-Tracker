@@ -434,10 +434,35 @@
             const ctx = document.getElementById('category-chart').getContext('2d');
             let categoryChart;
 
+            const readStoredJson = (key, fallback, isValid = () => true) => {
+                try {
+                    const storedValue = localStorage.getItem(key);
+                    if (storedValue === null) return fallback;
+                    const parsedValue = JSON.parse(storedValue);
+                    return isValid(parsedValue) ? parsedValue : fallback;
+                } catch {
+                    return fallback;
+                }
+            };
+
+            const saveStoredJson = (key, value) => {
+                try {
+                    localStorage.setItem(key, JSON.stringify(value));
+                    return true;
+                } catch {
+                    return false;
+                }
+            };
+
             // App State
             let appState = {
-                transactions: JSON.parse(localStorage.getItem("transactions")) || [],
-                budgets: JSON.parse(localStorage.getItem("budgets")) || {},
+                transactions: readStoredJson("transactions", [], value =>
+                    Array.isArray(value) &&
+                    value.every(transaction => transaction !== null && typeof transaction === "object" && !Array.isArray(transaction))
+                ),
+                budgets: readStoredJson("budgets", {}, value =>
+                    value !== null && typeof value === "object" && !Array.isArray(value)
+                ),
                 selectedDate: new Date(),
                 filters: {
                     type: '',
@@ -594,9 +619,15 @@
             const getMonthYearKey = (date) => `${date.getFullYear()}-${date.getMonth()}`;
             const formatMonth = (date) => date.toLocaleString('default', { month: 'long', year: 'numeric' });
 
+            let storageWarningShown = false;
             const saveData = () => {
-                localStorage.setItem("transactions", JSON.stringify(appState.transactions));
-                localStorage.setItem("budgets", JSON.stringify(appState.budgets));
+                const transactionsSaved = saveStoredJson("transactions", appState.transactions);
+                const budgetsSaved = saveStoredJson("budgets", appState.budgets);
+
+                if ((!transactionsSaved || !budgetsSaved) && !storageWarningShown) {
+                    storageWarningShown = true;
+                    showNotification("Browser storage is unavailable or full. Changes may not persist.", "error");
+                }
             };
             
             const getMonthlyData = () => {
