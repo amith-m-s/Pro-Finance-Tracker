@@ -103,3 +103,41 @@ test("application state uses validated storage reads and warns on failed persist
   assert.match(inlineScript, /budgets: readStoredJson\("budgets", \{\}, value =>/);
   assert.match(inlineScript, /Browser storage is unavailable or full\. Changes may not persist\./);
 });
+
+test("month navigation avoids date overflow and preserves calendar boundaries", () => {
+  const helper = inlineScript.match(/const shiftMonth = \\(date, offset\\) => [^\\n]+;/);
+  assert.ok(helper, "shiftMonth should be present");
+  const shiftMonth = vm.runInNewContext(
+    "(" + helper[0].replace(/^const shiftMonth = /, "").replace(/;$/, "") + ")"
+  );
+
+  const januaryThirtyFirst = new Date(2025, 0, 31);
+  const february = shiftMonth(januaryThirtyFirst, 1);
+  assert.deepEqual(
+    [february.getFullYear(), february.getMonth(), february.getDate()],
+    [2025, 1, 1]
+  );
+  assert.deepEqual(
+    [januaryThirtyFirst.getFullYear(), januaryThirtyFirst.getMonth(), januaryThirtyFirst.getDate()],
+    [2025, 0, 31],
+    "month navigation must not mutate the original date"
+  );
+
+  const march = shiftMonth(february, 1);
+  assert.deepEqual([march.getFullYear(), march.getMonth(), march.getDate()], [2025, 2, 1]);
+
+  const leapFebruary = shiftMonth(new Date(2024, 2, 31), -1);
+  assert.deepEqual(
+    [leapFebruary.getFullYear(), leapFebruary.getMonth(), leapFebruary.getDate()],
+    [2024, 1, 1]
+  );
+
+  const previousDecember = shiftMonth(new Date(2025, 0, 1), -1);
+  assert.deepEqual(
+    [previousDecember.getFullYear(), previousDecember.getMonth(), previousDecember.getDate()],
+    [2024, 11, 1]
+  );
+
+  assert.match(inlineScript, /appState\\.selectedDate = shiftMonth\\(appState\\.selectedDate, -1\\)/);
+  assert.match(inlineScript, /appState\\.selectedDate = shiftMonth\\(appState\\.selectedDate, 1\\)/);
+});
