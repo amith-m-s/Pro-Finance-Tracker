@@ -105,11 +105,14 @@ test("application state uses validated storage reads and warns on failed persist
 });
 
 test("month navigation avoids date overflow and preserves calendar boundaries", () => {
-  const helper = inlineScript.match(/const shiftMonth = \\(date, offset\\) => [^\\n]+;/);
-  assert.ok(helper, "shiftMonth should be present");
-  const shiftMonth = vm.runInNewContext(
-    "(" + helper[0].replace(/^const shiftMonth = /, "").replace(/;$/, "") + ")"
-  );
+  const helperStart = inlineScript.indexOf("const shiftMonth = ");
+  assert.notEqual(helperStart, -1, "shiftMonth should be present");
+  const helperEnd = inlineScript.indexOf(";", helperStart);
+  assert.notEqual(helperEnd, -1, "shiftMonth should be terminated");
+  const helperExpression = inlineScript
+    .slice(helperStart, helperEnd)
+    .replace("const shiftMonth = ", "");
+  const shiftMonth = vm.runInNewContext("(" + helperExpression + ")");
 
   const januaryThirtyFirst = new Date(2025, 0, 31);
   const february = shiftMonth(januaryThirtyFirst, 1);
@@ -138,6 +141,6 @@ test("month navigation avoids date overflow and preserves calendar boundaries", 
     [2024, 11, 1]
   );
 
-  assert.match(inlineScript, /appState\\.selectedDate = shiftMonth\\(appState\\.selectedDate, -1\\)/);
-  assert.match(inlineScript, /appState\\.selectedDate = shiftMonth\\(appState\\.selectedDate, 1\\)/);
+  assert.ok(inlineScript.includes("appState.selectedDate = shiftMonth(appState.selectedDate, -1)"));
+  assert.ok(inlineScript.includes("appState.selectedDate = shiftMonth(appState.selectedDate, 1)"));
 });
