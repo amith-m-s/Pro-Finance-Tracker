@@ -618,6 +618,8 @@
             // --- Data & State Management ---
             const getMonthYearKey = (date) => `${date.getFullYear()}-${date.getMonth()}`;
             const formatMonth = (date) => date.toLocaleString('default', { month: 'long', year: 'numeric' });
+            // Keep navigation anchored to day one so short months cannot overflow.
+            const shiftMonth = (date, offset) => new Date(date.getFullYear(), date.getMonth() + offset, 1);
 
             let storageWarningShown = false;
             const saveData = () => {
@@ -919,12 +921,12 @@
             });
             
             prevMonthBtn.addEventListener("click", () => {
-                appState.selectedDate.setMonth(appState.selectedDate.getMonth() - 1);
+                appState.selectedDate = shiftMonth(appState.selectedDate, -1);
                 render();
             });
             
             nextMonthBtn.addEventListener("click", () => {
-                appState.selectedDate.setMonth(appState.selectedDate.getMonth() + 1);
+                appState.selectedDate = shiftMonth(appState.selectedDate, 1);
                 render();
             });
             
