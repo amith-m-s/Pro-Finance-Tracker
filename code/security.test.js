@@ -39,6 +39,14 @@ test("category options are created as text rather than HTML strings", () => {
   assert.doesNotMatch(inlineScript, /categoryInput\.innerHTML\s*=/);
 });
 
+function loadInlineHelper(name) {
+  const helperMatch = inlineScript.match(new RegExp(
+    "const " + name + " = (\\([\\s\\S]*?\\n            \\})\\s*;"
+  ));
+  assert.ok(helperMatch, name + " should be defined");
+  return vm.runInNewContext("(" + helperMatch[1] + ")");
+}
+
 function loadStorageHelper(name, storage) {
   const helperMatch = inlineScript.match(new RegExp(
     "const " + name + " = (\\([\\s\\S]*?\\n            \\})\\s*;"
@@ -143,4 +151,42 @@ test("month navigation avoids date overflow and preserves calendar boundaries", 
 
   assert.ok(inlineScript.includes("appState.selectedDate = shiftMonth(appState.selectedDate, -1)"));
   assert.ok(inlineScript.includes("appState.selectedDate = shiftMonth(appState.selectedDate, 1)"));
+});
+
+test("date-only values preserve their local calendar day in UTC-negative timezones", () => {
+  const parseDateOnly = loadInlineHelper("parseDateOnly");
+  const formatDateInput = loadInlineHelper("formatDateInput");
+  const date = parseDateOnly("2025-03-01");
+
+  assert.ok(date, "valid date should parse");
+  assert.equal(date.getFullYear(), 2025);
+  assert.equal(date.getMonth(), 2);
+  assert.equal(date.getDate(), 1);
+  assert.equal(formatDateInput(date), "2025-03-01");
+  assert.equal(formatDateInput(new Date(2025, 2, 1, 23, 59)), "2025-03-01");
+  assert.equal(formatDateInput(new Date(NaN)), "");
+});
+
+test("date-only parser rejects invalid calendar dates and malformed values", () => {
+  const parseDateOnly = loadInlineHelper("parseDateOnly");
+
+  for (const invalid of ["", "2025-2-01", "2025-02-29", "2024-13-01", "2024-04-31", "0000-01-01", null, 20250301]) {
+    assert.equal(parseDateOnly(invalid), null, `expected ${String(invalid)} to be rejected`);
+  }
+
+  const leapDay = parseDateOnly("2024-02-29");
+  assert.ok(leapDay);
+  assert.equal(leapDay.getFullYear(), 2024);
+  assert.equal(leapDay.getMonth(), 1);
+  assert.equal(leapDay.getDate(), 29);
+});
+
+test("calendar-date parsing is used consistently throughout transaction views", () => {
+  assert.match(inlineScript, /const txDate = parseDateOnly\(tx\.date\)/);
+  assert.match(inlineScript, /const startDate = parseDateOnly\(appState\.filters\.startDate\)/);
+  assert.match(inlineScript, /const endDate = parseDateOnly\(appState\.filters\.endDate\)/);
+  assert.match(inlineScript, /const transactionDate = parseDateOnly\(tx\.date\)/);
+  assert.match(inlineScript, /const aDate = parseDateOnly\(a\.date\)/);
+  assert.match(inlineScript, /const bDate = parseDateOnly\(b\.date\)/);
+  assert.equal((inlineScript.match(/formatDateInput\(new Date\(\)\)/g) || []).length, 3);
 });
