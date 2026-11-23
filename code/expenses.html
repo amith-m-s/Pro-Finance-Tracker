@@ -552,7 +552,7 @@
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.setAttribute("href", url);
-                const dateStr = new Date().toISOString().split('T')[0];
+                const dateStr = formatDateInput(new Date());
                 a.setAttribute("download", `finance_tracker_export_${dateStr}.csv`);
                 a.style.visibility = 'hidden';
                 document.body.appendChild(a);
@@ -578,7 +578,7 @@
                 saveBtn.textContent = "Save Transaction";
                 transactionForm.reset();
                 editIdInput.value = "";
-                dateInput.value = new Date().toISOString().split('T')[0];
+                dateInput.value = formatDateInput(new Date());
                 setTransactionType('expense');
                 openModal(transactionModal);
             });
@@ -617,6 +617,24 @@
 
             // --- Data & State Management ---
             const getMonthYearKey = (date) => `${date.getFullYear()}-${date.getMonth()}`;
+            // HTML date values represent calendar dates, not UTC instants.
+            const parseDateOnly = (value) => {
+                if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+                const [year, month, day] = value.split("-").map(Number);
+                if (year < 1) return null;
+                const date = new Date(year, month - 1, day);
+                if (year < 100) date.setFullYear(year);
+                if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return null;
+                return date;
+            };
+            const formatDateInput = (date) => {
+                if (!date || typeof date.getFullYear !== "function" || typeof date.getTime !== "function" || Number.isNaN(date.getTime())) return "";
+                const year = date.getFullYear();
+                if (year < 1 || year > 9999) return "";
+                const month = String(date.getMonth() + 1).padStart(2, "0");
+                const day = String(date.getDate()).padStart(2, "0");
+                return `${String(year).padStart(4, "0")}-${month}-${day}`;
+            };
             const formatMonth = (date) => date.toLocaleString('default', { month: 'long', year: 'numeric' });
             // Keep navigation anchored to day one so short months cannot overflow.
             const shiftMonth = (date, offset) => new Date(date.getFullYear(), date.getMonth() + offset, 1);
@@ -638,8 +656,8 @@
                 const monthYearKey = getMonthYearKey(appState.selectedDate);
                 const budgetForMonth = appState.budgets[monthYearKey] || 0;
                 const monthlyExpenses = appState.transactions.filter(tx => {
-                    const txDate = new Date(tx.date);
-                    return tx.type === 'expense' && txDate.getMonth() === selectedMonth && txDate.getFullYear() === selectedYear;
+                    const txDate = parseDateOnly(tx.date);
+                    return tx.type === 'expense' && txDate !== null && txDate.getMonth() === selectedMonth && txDate.getFullYear() === selectedYear;
                 });
                 const monthlyTotal = monthlyExpenses.reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
                 const categoryMap = monthlyExpenses.reduce((acc, tx) => {
@@ -673,16 +691,26 @@
                 }
                 
                 if (appState.filters.startDate) {
-                    const startDate = new Date(appState.filters.startDate);
-                    filteredTransactions = filteredTransactions.filter(tx => new Date(tx.date) >= startDate);
+                    const startDate = parseDateOnly(appState.filters.startDate);
+                    if (startDate) filteredTransactions = filteredTransactions.filter(tx => {
+                        const txDate = parseDateOnly(tx.date);
+                        return txDate !== null && txDate >= startDate;
+                    });
                 }
                 
                 if (appState.filters.endDate) {
-                    const endDate = new Date(appState.filters.endDate);
-                    filteredTransactions = filteredTransactions.filter(tx => new Date(tx.date) <= endDate);
+                    const endDate = parseDateOnly(appState.filters.endDate);
+                    if (endDate) filteredTransactions = filteredTransactions.filter(tx => {
+                        const txDate = parseDateOnly(tx.date);
+                        return txDate !== null && txDate <= endDate;
+                    });
                 }
                 
-                const sortedTransactions = filteredTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+                const sortedTransactions = filteredTransactions.sort((a, b) => {
+                    const aDate = parseDateOnly(a.date)?.getTime() ?? -1;
+                    const bDate = parseDateOnly(b.date)?.getTime() ?? -1;
+                    return bDate - aDate;
+                });
                 
                 // Show error message if no transactions after filtering
                 if (sortedTransactions.length === 0 && 
@@ -710,8 +738,8 @@
 
                     const dateCell = document.createElement("td");
                     dateCell.className = "px-6 py-4";
-                    const transactionDate = new Date(tx.date);
-                    dateCell.textContent = Number.isNaN(transactionDate.getTime())
+                    const transactionDate = parseDateOnly(tx.date);
+                    dateCell.textContent = transactionDate === null
                         ? "Invalid date"
                         : transactionDate.toLocaleDateString();
 
