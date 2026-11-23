@@ -707,8 +707,8 @@
                 }
                 
                 const sortedTransactions = filteredTransactions.sort((a, b) => {
-                    const aDate = parseDateOnly(a.date)?.getTime() ?? -1;
-                    const bDate = parseDateOnly(b.date)?.getTime() ?? -1;
+                    const aDate = parseDateOnly(a.date)?.getTime() ?? Number.NEGATIVE_INFINITY;
+                    const bDate = parseDateOnly(b.date)?.getTime() ?? Number.NEGATIVE_INFINITY;
                     return bDate - aDate;
                 });
                 
@@ -980,7 +980,7 @@
             showLoginPage(); // Show login page initially
             
             // Set default date to today
-            dateInput.value = new Date().toISOString().split('T')[0];
+            dateInput.value = formatDateInput(new Date());
         });
     </script>
 </body>
