@@ -13,6 +13,8 @@ permissions:
 jobs:
   security-tests:
     runs-on: ubuntu-latest
+    env:
+      TZ: America/Los_Angeles
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
